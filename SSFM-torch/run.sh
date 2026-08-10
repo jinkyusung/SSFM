@@ -5,17 +5,11 @@
 #SBATCH --time=3-00:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
-#SBATCH --output=/dev/null
+#SBATCH --output=SSFM-torch/slurm/%x_%j.out
 
 set -euo pipefail
 CONDA_ENV="${SSFM_CONDA_ENV:-ssfm-torch}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-SLURM_LOG_DIR="${SCRIPT_DIR}/slurm"
-mkdir -p "${SLURM_LOG_DIR}"
-if [[ -n "${SLURM_JOB_ID:-}" ]]; then
-    LOG_NAME="${SLURM_JOB_NAME:-ssfm-torch}_${SLURM_JOB_ID}.out"
-    exec >"${SLURM_LOG_DIR}/${LOG_NAME}" 2>&1
-fi
 PYTHON_FILE="${1:-train.py}"
 if [[ $# -gt 0 ]]; then shift; fi
 if [[ "${PYTHON_FILE}" = /* ]]; then

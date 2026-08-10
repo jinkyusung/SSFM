@@ -9,6 +9,10 @@ checkpoints/
 models/
 wandb/
 slurm/
+!SSFM-jax/slurm/
+!SSFM-jax/slurm/.gitkeep
+!SSFM-torch/slurm/
+!SSFM-torch/slurm/.gitkeep
 *.eqx
 *.npz
 *.pkl
