@@ -18,3 +18,4 @@ slurm/
 *.pkl
 *.png
 *.pdf
+*.out
