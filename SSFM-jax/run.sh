@@ -10,7 +10,18 @@
 set -euo pipefail
 
 CONDA_ENV="${SSFM_CONDA_ENV:-ssfm-cifar}"
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
+    if [[ -f "${SLURM_SUBMIT_DIR}/SSFM-jax/ssfm_cifar.py" ]]; then
+        SCRIPT_DIR="${SLURM_SUBMIT_DIR}/SSFM-jax"
+    elif [[ -f "${SLURM_SUBMIT_DIR}/ssfm_cifar.py" ]]; then
+        SCRIPT_DIR="${SLURM_SUBMIT_DIR}"
+    else
+        echo "Cannot locate SSFM-jax from SLURM_SUBMIT_DIR=${SLURM_SUBMIT_DIR}" >&2
+        exit 1
+    fi
+else
+    SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+fi
 PYTHON_FILE="${1:-ssfm_cifar.py}"
 if [[ $# -gt 0 ]]; then
     shift

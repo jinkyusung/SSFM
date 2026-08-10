@@ -9,7 +9,18 @@
 
 set -euo pipefail
 CONDA_ENV="${SSFM_CONDA_ENV:-ssfm-torch}"
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
+    if [[ -f "${SLURM_SUBMIT_DIR}/SSFM-torch/train.py" ]]; then
+        SCRIPT_DIR="${SLURM_SUBMIT_DIR}/SSFM-torch"
+    elif [[ -f "${SLURM_SUBMIT_DIR}/train.py" ]]; then
+        SCRIPT_DIR="${SLURM_SUBMIT_DIR}"
+    else
+        echo "Cannot locate SSFM-torch from SLURM_SUBMIT_DIR=${SLURM_SUBMIT_DIR}" >&2
+        exit 1
+    fi
+else
+    SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+fi
 PYTHON_FILE="${1:-train.py}"
 if [[ $# -gt 0 ]]; then shift; fi
 if [[ "${PYTHON_FILE}" = /* ]]; then
