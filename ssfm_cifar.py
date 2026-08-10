@@ -13,6 +13,7 @@ os.environ.setdefault("XLA_PYTHON_CLIENT_MEM_FRACTION", "1.0")
 import math
 import pickle
 import tarfile
+import time
 import urllib.request
 
 import diffrax
@@ -1236,7 +1237,12 @@ def main():
         joint_loss = eqx.filter_shard(joint_loss, replicate_sharding)
         opt_state = eqx.filter_shard(opt_state, replicate_sharding)
 
+    run_start_time = time.perf_counter()
+    cumulative_train_time = 0.0
+    last_loss_val = None
+
     for step in range(start_step, n_train_steps):
+        batch_start_time = time.perf_counter()
         key, key_batch, key_step = jax.random.split(key, 3)
         idx = jax.random.randint(key_batch, (batch_size,), 0, dataset.shape[0])
         y0_batch = dataset[idx]
@@ -1253,14 +1259,36 @@ def main():
             key_step,
         )
 
-        if step % 1000 == 0:
-            loss_val = loss.item()
-            print(f"Step {step:>6d} | Loss: {loss_val:.4f}")
-            wandb.log({"loss": loss_val}, step=step)
+        # JAX dispatch is asynchronous. Reading the scalar blocks until this
+        # batch is complete, so the timing below measures the real batch time.
+        loss_val = loss.item()
+        batch_time = time.perf_counter() - batch_start_time
+        cumulative_train_time += batch_time
+        wall_time = time.perf_counter() - run_start_time
+        last_loss_val = loss_val
 
+        log_data = {
+            "loss": loss_val,
+            "train/batch": step + 1,
+            "train/epoch": (step + 1) * batch_size / dataset.shape[0],
+            "train/learning_rate": float(schedule(step)),
+            "time/batch_sec": batch_time,
+            "time/train_sec": cumulative_train_time,
+            "time/wall_sec": wall_time,
+            "performance/samples_per_sec": batch_size / max(batch_time, 1e-12),
+        }
+
+        if step % 1000 == 0:
+            print(
+                f"Step {step:>6d} | Loss: {loss_val:.4f} | "
+                f"Batch: {batch_time:.2f}s | "
+                f"Throughput: {log_data['performance/samples_per_sec']:.1f} img/s"
+            )
+
+        sample_fig = None
         if step > 0 and step % sample_every == 0:
             key, key_sample = jax.random.split(key)
-            fig = make_sample_grid(
+            sample_fig = make_sample_grid(
                 ema_flow_map,
                 t_eps,
                 key_sample,
@@ -1269,8 +1297,13 @@ def main():
                 data_mean,
                 data_std,
             )
-            wandb.log({"samples": wandb.Image(fig)}, step=step)
-            plt.close(fig)
+            log_data["samples"] = wandb.Image(sample_fig)
+
+        # Commit exactly one W&B row for every training batch. Keeping sample
+        # images in the same row avoids multiple writes with the same step.
+        wandb.log(log_data, step=step)
+        if sample_fig is not None:
+            plt.close(sample_fig)
 
         if step > 0 and step % checkpoint_every == 0:
             save_checkpoint(
@@ -1283,9 +1316,13 @@ def main():
                 key,
             )
 
-    loss_val = loss.item()
-    print(f"Step {n_train_steps:>6d} | Loss: {loss_val:.4f}")
-    wandb.log({"loss": loss_val}, step=n_train_steps)
+    if last_loss_val is not None:
+        print(
+            f"Training complete | Step: {n_train_steps} | "
+            f"Loss: {last_loss_val:.4f} | Train time: {cumulative_train_time:.1f}s"
+        )
+    else:
+        print(f"Checkpoint is already at step {n_train_steps}; no batches were run.")
 
     save_checkpoint(
         os.path.join(checkpoint_dir, format_step(n_train_steps)),
