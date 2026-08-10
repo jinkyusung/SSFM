@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=ssfm-torch
 #SBATCH --partition=a6000
-#SBATCH --gres=gpu:3
+#SBATCH --gres=gpu:4
 #SBATCH --time=3-00:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
