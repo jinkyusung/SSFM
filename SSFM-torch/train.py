@@ -103,8 +103,8 @@ def train(config: TrainConfig) -> None:
     local_rank = int(os.environ.get("LOCAL_RANK", "0"))
     distributed = world_size > 1
     if distributed:
-        dist.init_process_group(backend="nccl")
         torch.cuda.set_device(local_rank)
+        dist.init_process_group(backend="nccl")
     torch.manual_seed(config.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(config.seed)
@@ -118,7 +118,7 @@ def train(config: TrainConfig) -> None:
     if distributed:
         if rank == 0:
             dataset, data_mean, data_std = cifar10(config.data_dir)
-        dist.barrier()
+        dist.barrier(device_ids=[local_rank])
         if rank != 0:
             dataset, data_mean, data_std = cifar10(config.data_dir, download=False)
     else:
@@ -267,7 +267,7 @@ def train(config: TrainConfig) -> None:
         if run is not None:
             run.finish()
     if distributed:
-        dist.barrier()
+        dist.barrier(device_ids=[local_rank])
         dist.destroy_process_group()
 
 

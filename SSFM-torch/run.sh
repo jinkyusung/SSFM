@@ -8,6 +8,7 @@
 #SBATCH --output=SSFM-torch/slurm/%x_%j.out
 
 set -euo pipefail
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
 CONDA_ENV="${SSFM_CONDA_ENV:-ssfm-torch}"
 if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
     if [[ -f "${SLURM_SUBMIT_DIR}/SSFM-torch/train.py" ]]; then

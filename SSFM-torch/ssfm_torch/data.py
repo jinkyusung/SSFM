@@ -6,6 +6,7 @@ import os
 import pickle
 import tarfile
 import urllib.request
+import warnings
 
 import numpy as np
 import torch
@@ -30,11 +31,17 @@ def cifar10(path: str = "data", *, download: bool = True) -> tuple[Tensor, Tenso
             member = archive.extractfile(f"cifar-10-batches-py/data_batch_{index}")
             if member is None:
                 raise RuntimeError(f"CIFAR archive is missing data batch {index}")
-            batch = pickle.load(member, encoding="bytes")
+            # NumPy 2.4 warns while reconstructing a legacy dtype stored in the
+            # official CIFAR-10 Python pickle. The decoded array is unaffected.
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message=r"dtype\(\): align should be passed.*",
+                )
+                batch = pickle.load(member, encoding="bytes")
             batches.append(batch[b"data"])
 
     images = torch.from_numpy(np.concatenate(batches)).to(torch.float32) / 255.0
     data_mean = images.mean(dim=0)
     data_std = images.std(dim=0, correction=0).clamp_min(1e-6)
     return (images - data_mean) / data_std, data_mean, data_std
-
