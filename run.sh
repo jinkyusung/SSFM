@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=ssfm-cifar
 #SBATCH --partition=a6000
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --time=3-00:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
