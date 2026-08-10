@@ -12,10 +12,13 @@ import numpy as np
 from PIL import Image
 from scipy import linalg
 from ssfm_cifar import (
+    DATA_DIR,
     build_model,
     cifar10,
     sample_flow_map_batched,
 )
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 try:
     import torch
@@ -149,8 +152,8 @@ def compute_and_cache_real_stats(
 
 
 def main(
-    model_path="models/cifar10_edm2_em.eqx",
-    checkpoint_path="checkpoints/400k",
+    model_path=os.path.join(PROJECT_DIR, "models", "cifar10_edm2_em.eqx"),
+    checkpoint_path=os.path.join(PROJECT_DIR, "checkpoints", "400k"),
     n_samples=50_000,
     sample_batch_size=256,
     step_sizes=(1 / 16, 1 / 8, 1 / 4, 1 / 2),
@@ -166,7 +169,7 @@ def main(
     data_mean = data_mean.reshape(data_shape)
     data_std = data_std.reshape(data_shape)
 
-    real_stats_path = "data/cifar10_inception_stats.npz"
+    real_stats_path = os.path.join(DATA_DIR, "cifar10_inception_stats.npz")
     dataset_for_fid = dataset * data_std[None] + data_mean[None]
     dataset_for_fid = dataset_for_fid * 2.0 - 1.0
     real_stats = compute_and_cache_real_stats(

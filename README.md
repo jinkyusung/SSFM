@@ -1,58 +1,12 @@
 # SSFM for CIFAR-10
 
-A self-contained Strong Stochastic Flow Map implementation for CIFAR-10.
+이 저장소는 동일한 Strong Stochastic Flow Map을 두 개의 독립 구현으로
+제공합니다.
 
-## Environment
+- [SSFM-jax](SSFM-jax/README.md): JAX, Equinox, Diffrax 기준 구현
+- [SSFM-torch](SSFM-torch/README.md): JAX 런타임 의존성이 없는 PyTorch 구현
 
-Create a conda environment and install all Python dependencies with pip:
+각 디렉터리의 README에 환경 설정, 학습, 평가 방법이 정리되어 있습니다.
 
-```bash
-./setup_ssfm_cifar_env.sh auto
-conda activate ssfm-cifar
-```
-
-Use `cuda12` or `cpu` instead of `auto` to force a backend. To install the
-additional PyTorch dependencies needed for FID evaluation:
-
-```bash
-./setup_ssfm_cifar_env.sh auto ssfm-cifar metrics
-```
-
-## Training
-
-```bash
-python ssfm_cifar.py
-```
-
-Submit it through Slurm with the default training entry point:
-
-```bash
-mkdir -p slurm  # Slurm opens the output path before run.sh starts
-sbatch run.sh
-```
-
-Or select any Python entry point and pass its remaining arguments through:
-
-```bash
-sbatch run.sh eval_fid.py
-sbatch run.sh some_file.py --some-option value
-```
-
-`run.sh` uses the `ssfm-cifar` conda environment created by the setup script.
-If the setup script was given a different environment name, export the same
-name when submitting:
-
-```bash
-./setup_ssfm_cifar_env.sh cuda12 my-ssfm-env
-sbatch --export=ALL,SSFM_CONDA_ENV=my-ssfm-env run.sh ssfm_cifar.py
-```
-
-CIFAR-10 is downloaded to `data/`, and checkpoints are written to
-`checkpoints/`. Set `WANDB_MODE=offline` to train without logging into W&B.
-
-## Evaluation
-
-```bash
-python eval_fid.py
-python bm_consistency.py
-```
+CIFAR-10 데이터는 최상단 `data/`에서 두 구현이 공유합니다. 체크포인트,
+모델, W&B와 Slurm 로그 같은 실행 결과는 각 구현 디렉터리 내부에 분리됩니다.

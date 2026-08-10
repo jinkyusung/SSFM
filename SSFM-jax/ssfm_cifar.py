@@ -27,6 +27,11 @@ import wandb
 from jax.sharding import Mesh, NamedSharding, PartitionSpec as P
 from jaxtyping import Array, Float, PRNGKeyArray
 
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPOSITORY_DIR = os.path.dirname(PROJECT_DIR)
+DATA_DIR = os.path.join(REPOSITORY_DIR, "data")
+CHECKPOINT_DIR = os.path.join(PROJECT_DIR, "checkpoints")
+
 Y = Float[Array, " *d"]
 BatchY = Float[Array, "batch *d"]
 
@@ -776,7 +781,9 @@ class UncertaintyJointLoss(eqx.Module):
         return loss, fm_grads, u_grads
 
 
-def cifar10(path="data"):
+def cifar10(path: str | None = None):
+    if path is None:
+        path = DATA_DIR
     url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
     tar_path = os.path.join(path, "cifar-10-python.tar.gz")
 
@@ -1094,7 +1101,7 @@ def main():
     beta_max = 20.0
     sample_every = 10_000
     checkpoint_every = 50_000
-    checkpoint_dir = "checkpoints"
+    checkpoint_dir = CHECKPOINT_DIR
     warmup_steps = 5_000
     sample_step_sizes = [1 / 16, 1 / 8, 1 / 4, 1 / 2]
 
@@ -1137,7 +1144,7 @@ def main():
         "dropout_rate": dropout_rate,
     }
 
-    wandb.init(project="Stochastic Flow Map", config=config)
+    wandb.init(project="Stochastic Flow Map", config=config, dir=PROJECT_DIR)
 
     devices = jax.devices()
     n_devices = len(devices)
@@ -1344,8 +1351,9 @@ def main():
         data_mean,
         data_std,
     )
-    fig.savefig("cifar10_edm2_em_samples.png", dpi=150)
-    print("Saved cifar10_edm2_em_samples.png")
+    sample_path = os.path.join(PROJECT_DIR, "cifar10_edm2_em_samples.png")
+    fig.savefig(sample_path, dpi=150)
+    print(f"Saved {sample_path}")
     wandb.log({"samples": wandb.Image(fig)}, step=n_train_steps)
     plt.close(fig)
 

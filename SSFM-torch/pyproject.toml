@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ssfm-torch"
+version = "0.1.0"
+description = "Independent PyTorch implementation of SSFM for CIFAR-10"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "pillow>=10",
+  "scipy>=1.11",
+  "torch>=2.2",
+  "torchvision>=0.17",
+  "wandb>=0.16",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ssfm_torch*"]
+

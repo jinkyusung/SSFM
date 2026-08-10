@@ -6,6 +6,7 @@ __pycache__/
 .venv*/
 data/
 checkpoints/
+models/
 wandb/
 slurm/
 *.eqx

@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from ssfm_cifar import EulerMaruyamaFlowMap, build_model, cifar10
 
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 plt.rcParams.update(
     {
         "font.family": "serif",
@@ -52,12 +54,12 @@ def to_image(arr: jnp.ndarray, data_mean: jnp.ndarray, data_std: jnp.ndarray):
 
 
 def main(
-    checkpoint_path: str = "checkpoints/350k",
+    checkpoint_path: str = os.path.join(PROJECT_DIR, "checkpoints", "350k"),
     step_counts: tuple[int, ...] = (2, 4, 8, 16, 32),
     t_eps: float = 1e-5,
     s: float = 1.0,
     seed: int = 8,
-    save_path: str = "bm_consistency.pdf",
+    save_path: str = os.path.join(PROJECT_DIR, "bm_consistency.pdf"),
 ):
     in_channels = 3
     resolution = 32

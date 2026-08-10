@@ -137,5 +137,5 @@ PY
 
 printf '\nEnvironment setup completed.\n'
 printf 'Activate: conda activate %s\n' "${ENV_NAME}"
-printf 'Train:    python ssfm_cifar.py\n'
-printf 'Offline W&B: WANDB_MODE=offline python ssfm_cifar.py\n'
+printf 'Train:    python %s\n' "${MODEL_PATH}"
+printf 'Offline W&B: WANDB_MODE=offline python %s\n' "${MODEL_PATH}"
