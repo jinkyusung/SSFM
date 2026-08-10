@@ -1,0 +1,14 @@
+__pycache__/
+*.py[oc]
+.DS_Store
+
+# Local environment and training outputs
+.venv*/
+data/
+checkpoints/
+wandb/
+*.eqx
+*.npz
+*.pkl
+*.png
+*.pdf
